@@ -4,10 +4,11 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
-    <title>reveal.js</title>
+    <title>Generative Modeling</title>
 
     <link rel="stylesheet" href="css/reveal.css">
-    <link rel="stylesheet" href="css/theme/black.css">
+    <!-- <link rel="stylesheet" href="css/theme/black.css"> -->
+    <link rel="stylesheet" href="css/theme/blood.css">
 
     <!-- Theme used for syntax highlighting of code -->
     <link rel="stylesheet" href="lib/css/zenburn.css">
@@ -24,8 +25,173 @@
   <body>
     <div class="reveal">
       <div class="slides">
-        <section>Slide 1</section>
-        <section>Slide 2</section>
+
+        <section>
+          <h2>Generative Modeling</h2>
+          <h4>Spring School 2017</h4>
+          <br><br>
+          <p>
+            <img height="200" src="imgs/cui.gif">
+            <br>
+            <small>by <a href="https://jramapuram.github.io/">Jason Ramapuram</a> </small>
+          </p>
+        </section>
+
+        <section>
+          <aside class="notes">
+            <ul>
+              <li>A generative model can be transformed into a discriminative model via bayes rule</li>
+            </ul>
+          </aside>
+
+          <h3>What is a Generative Model?</h3>
+          <p>
+            Given $X = \{x_i\}_{i=0}^M \in \mathcal{R}^{N \times M}$ and $Y =
+            \{y_i\}_{i=0}^M \in \mathcal{R}^{N\times1}$
+            <ol>
+              <li>a generative model learns learns a joint distribution $P(X, Y)$. </li>
+              <!-- <ul>
+                   <li>Sometimes a latent variable is utilized: $Z = {z_i}_{i=0}^M \in \mathcal{R}^{N \times K}$</li>
+                   </ul> -->
+                   <li>a discriminative model on the other hand learns a conditional distribution $P(Y|X)$. </li>
+            </ol>
+          </p>
+        </section>
+
+        <section>
+          <aside class="notes">
+            <ul>
+              <li></li>
+            </ul>
+          </aside>
+
+          <h3>Why Learn Generative Modeling?</h3>
+            <ul>
+              <li>Generative time series models can be utilized to predict the future.</li>
+              <li>Has the ability to fill in missing data: semi-supervised
+                learning for example where some labels are missing or image
+                inpainting</li>
+              <li>GAN's for example allow the learning of multi-modal
+                distributions; minimizing the mean squared error in comparison
+                cannot learn to produce multiple correct answers
+                (Goodfellow NIPS 2016)</li>
+              <li>Unsupervised learning, denoising, super-resolution, compression, etc</li>
+            </ul>
+          </p>
+        </section>
+
+        <section>
+          <aside class="notes">
+            <ul>
+              <li>Left of the tree explicitly models density $p_{model}(x;
+              \theta)$ and you can thus explicitly minimize the likelihood</li>
+              <li>Typically the indirect means of interacting with the probability
+              distribution is the ability to draw samples from it. Some of these
+              implicit models that o er the ability to sample from the
+              distribution do so using a MarkovChain; the model de nes a way to
+              stochastically transform an existing sample in orderto obtain
+              another sample from the same distribution. Others are able to
+              generate asample in a single step, starting without any input.
+              </li>
+              <li>GSN : generative stochastic networks basically try to learn
+              the tranisition operator on a markov chain whose stationary
+              distribution estimates the data distribution</li>
+            </ul>
+          </aside>
+
+          <h3>Taxonomy of Unsupervised Generative Models</h3>
+          <img src="imgs/landscape.png">
+        </section>
+
+        <section>
+          <aside class="notes">
+            <ul>
+              <li>A generative model can be transformed into a discriminative model via bayes rule</li>
+            </ul>
+          </aside>
+
+          <h3>Unsupervised Generative Modeling</h3>
+          <br>
+          <p>
+            Given $X = \{x_i\}_{i=0}^M \in \mathcal{R}^{N \times M}$ distributed as $P(X)$ (unknown), an unsupervised generative model learns a approximation $P_{\theta}(X)$
+          </p>
+        </section>
+
+        <section>
+
+          <aside class="notes">
+            <ul>
+              <li>leaving aside computational issues and matters such as
+                handling missing data, the prevailing consensus seems to be that
+                discriminative classifiers are almost always to be preferred to
+                generative ones.</li>
+              <li>"it is known that sample complexity in the discriminative setting is linear in the VC dimension"</li>
+            </ul>
+          </aside>
+
+          <h3>When not to use a Generative Model?</h3>
+          <p>
+            "one should solve the [classification] problem directly and never
+            solve a more general problem as an intermediate step (such as
+            modeling P(X|Y)]." (Vapnik 1998)
+          </p>
+        </section>
+
+        <section>
+          <aside class="notes">
+            <ul>
+              <li></li>
+            </ul>
+          </aside>
+
+          <h3>Classical VI Recipe</h3>
+          <img src="imgs/old_recipe.png">
+          <p><small>Blei et. al NIPS 2016</small></p>
+        </section>
+
+        <section>
+          <aside class="notes">
+            <ul>
+              <li></li>
+            </ul>
+          </aside>
+
+          <h3>Example: Bayesian Logistic Regression</h3>
+          <ul>
+            <li>For simplicity let's work with one data point: $(y, x)$</li>
+            <li>Bayesian version puts a prior on the regression coefficient z</li>
+            <ul>
+              <li>Let's assume z is distributed as a unit gaussian: $p(z) \sim \mathcal{N}(0, 1)$</li>
+            </ul>
+            <li>Since we are doing binary classification: $p(y | x, z) \sim Bern(\sigma(z x))$</li>
+            <ul>
+              <li>Recall: $Bern(\phi ; \mu) = \mu^{\phi} (1 - \mu)^{1 - \phi}$</li>
+            </ul>
+            <li>Solve the ELBO: </li>
+            $\begin{align}
+            \mathcal{L}(\mu, \sigma^2) &= \mathbb{E}_{q \sim \mathcal{N}(\mu, \sigma^2)} [log\ p(z) \\
+            &- log\ q(z) + log\ p(y|x,z)]
+            \end{align}$
+          </ul>
+        </section>
+
+        <section>
+          <aside class="notes">
+            <ul>
+              <li></li>
+            </ul>
+          </aside>
+
+          <h3>New VI Recipe</h3>
+          <img src="imgs/new_recipe.png">
+          <p><small>Blei et. al NIPS 2016</small></p>
+        </section>
+
+
+
+
+
+
       </div>
     </div>
 
@@ -36,6 +202,8 @@
       // More info https://github.com/hakimel/reveal.js#configuration
       Reveal.initialize({
         history: true,
+        progress: true,
+        slideNumber: true,
 
         math: {
           mathjax: 'https://cdn.mathjax.org/mathjax/latest/MathJax.js',
