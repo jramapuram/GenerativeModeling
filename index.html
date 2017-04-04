@@ -77,6 +77,39 @@
                 (Goodfellow NIPS 2016)</li>
               <li>Unsupervised learning, denoising, super-resolution, compression, etc</li>
             </ul>
+        </section>
+
+        <section>
+          <aside class="notes">
+            <ul>
+              <li>leaving aside computational issues and matters such as
+                handling missing data, the prevailing consensus seems to be that
+                discriminative classifiers are almost always to be preferred to
+                generative ones.</li>
+              <li>"it is known that sample complexity in the discriminative setting is linear in the VC dimension"</li>
+            </ul>
+          </aside>
+
+          <h3>When not to use a Generative Model?</h3>
+          <p>
+            "one should solve the [classification] problem directly and never
+            solve a more general problem as an intermediate step (such as
+            modeling P(X|Y)]." (Vapnik 1998)
+          </p>
+        </section>
+
+
+        <section>
+          <aside class="notes">
+            <ul>
+              <li></li>
+            </ul>
+          </aside>
+
+          <h3>Unsupervised Generative Modeling</h3>
+          <br>
+          <p>
+            Given $X = \{x_i\}_{i=0}^M \in \mathcal{R}^{N \times M}$ distributed as $P(X)$ (unknown), an unsupervised generative model learns a approximation $P_{\theta}(X)$
           </p>
         </section>
 
@@ -101,41 +134,78 @@
 
           <h3>Taxonomy of Unsupervised Generative Models</h3>
           <img src="imgs/landscape.png">
+          <p><small>(Goodfellow NIPS 2016)</small></p>
         </section>
 
         <section>
           <aside class="notes">
             <ul>
-              <li>A generative model can be transformed into a discriminative model via bayes rule</li>
+              <li>This is used in wavenet (2mins for 1s of audio)</li>
+              <li>Similar to RNNs</li>
+              <li>Slow because samples need to be generated one at a time</li>
+              <li>Sampling complexity is O(n)</li>
             </ul>
           </aside>
 
-          <h3>Unsupervised Generative Modeling</h3>
-          <br>
-          <p>
-            Given $X = \{x_i\}_{i=0}^M \in \mathcal{R}^{N \times M}$ distributed as $P(X)$ (unknown), an unsupervised generative model learns a approximation $P_{\theta}(X)$
-          </p>
+          <h3>Tractable + Explicit Density: FVBN</h3>
+          <p>$$p_{model}(x) = \prod_{i=1}^{N} p_{model} (x_i | x_1, x_2, ..., x_{i-1})$$</p>
+          <ul>
+            <li>The FVBN (Fully Visible Belief Network) (Frey et al.,1996; Frey, 1998) utilize the chain rule to decompose a probability distribution over an n-dimensional vector x into a product of one-dimensional distributions (Goodfellow NIPS 2016)</li>
+          </ul>
         </section>
 
         <section>
-
           <aside class="notes">
             <ul>
-              <li>leaving aside computational issues and matters such as
-                handling missing data, the prevailing consensus seems to be that
-                discriminative classifiers are almost always to be preferred to
-                generative ones.</li>
-              <li>"it is known that sample complexity in the discriminative setting is linear in the VC dimension"</li>
+              <li> Models with nonlineargfunctions date back at least to Deco and Brauer(1995).</li>
+              <li>The  latest  member  of  this  family  is  real  NVP(Dinhet  al., 2016).</li>
+              <li>Specifically, designing models with tractable learning,
+              sampling, inference and evaluation is crucial in solving this
+              task. We extend the space of such models using real-valued
+              non-volume preserving (real NVP) transformations, a set of
+              powerful invertible and learnable transformations, resulting in an
+              unsupervised learning algorithm with exact log-likelihood
+              computation, exact sampling, exact inference of latent variables,
+              and an interpretable latent space.</li>
+              <li>The main drawback to nonlinear ICA models is that they impose
+              restrictions on the choice of the functiong. In particular, the
+              invertibility requirement means that the latent variables z must
+              have the same dimensionality as x. </li
             </ul>
           </aside>
 
-          <h3>When not to use a Generative Model?</h3>
-          <p>
-            "one should solve the [classification] problem directly and never
-            solve a more general problem as an intermediate step (such as
-            modeling P(X|Y)]." (Vapnik 1998)
-          </p>
+          <h3>Tractable + Explicit Density: Non-Linear ICA</h3>
+            <p>$$p_x(x) = p_z (g^{-1}(x) \bigg{|} det \left( \frac{\delta g^{-1}(x)}{\delta x} \right) \bigg{|} $$</p>
+          <ul>
+            <li>assumes vector of latent variables $z$</li>
+            <li>assumes existence of continuous, differentiable, invertible function $g(z)$</li>
+            <li>requires tractable density $p_z$, tractable determinant of Jacobian of $g^{-1}$</li>
+            <li>$g(z)$  yields a sample from the model in $x$ space</li>
+          </ul>
+          <p>TLDR: a simple distribution over $z$ combined with a transformation
+          $g$ that warps space in complicated ways can yield a complicated
+          distribution over $x$ (Dinh et al., 2016, Deco and Brauer 1995)</p>
         </section>
+
+        <section>
+          <aside class="notes">
+            <ul>
+              <li>Boltzman machines utilize MCMC</li>
+              <li>q is the transition operator; no explicit way to test when it has converged</li>
+              <li>GANs / VAEs for example provide a single step sampling as opposed to multi-stage from MCMC</li>
+            </ul>
+          </aside>
+
+          <h3>Explicit Models that require Approximations</h3>
+          <p>Provide density explicit functions, but use one that is intractable.</p>
+          <ul>
+            <li>Variational approximations such as the VAE; mean field inference</li>
+            <ul>
+              <li>Minimize the variational lower bound (AKA ELBO): $\mathcal{L}(x;\theta) \leq log p_{model}(x;\theta)$</li>
+            <li>MCMC approximations: $x' \sim q(x' | x)$</li>
+          </ul>
+        </section>
+
 
         <section>
           <aside class="notes">
@@ -156,7 +226,7 @@
             </ul>
           </aside>
 
-          <h3>Example: Bayesian Logistic Regression</h3>
+          <h3>Exercise: Bayesian Logistic Regression</h3>
           <ul>
             <li>For simplicity let's work with one data point: $(y, x)$</li>
             <li>Bayesian version puts a prior on the regression coefficient z</li>
@@ -168,7 +238,7 @@
               <li>Recall: $Bern(\phi ; \mu) = \mu^{\phi} (1 - \mu)^{1 - \phi}$</li>
             </ul>
             <li>Solve the ELBO: </li>
-            $\begin{align}
+p            $\begin{align}
             \mathcal{L}(\mu, \sigma^2) &= \mathbb{E}_{q \sim \mathcal{N}(\mu, \sigma^2)} [log\ p(z) \\
             &- log\ q(z) + log\ p(y|x,z)]
             \end{align}$
@@ -185,6 +255,16 @@
           <h3>New VI Recipe</h3>
           <img src="imgs/new_recipe.png">
           <p><small>Blei et. al NIPS 2016</small></p>
+        </section>
+
+        <section>
+          <h3>References</h3>
+          <ul>
+            <li>Frey, B. J. (1998).Graphical  models  for  machine  learning  and  digital  communication.  MIT Press.</li>
+            <li>Frey, B. J., Hinton, G. E., and Dayan, P. (1996). Does the wake-sleep algorithm learn good density estimators?  In D. Touretzky, M. Mozer, and M. Hasselmo,editors,Advances  in  Neural  Information  Processing  Systems  8  (NIPS'95),pages 661{670. MIT Press, Cambridge, MA.</li>
+            <li>Dinh,  L.,  Sohl-Dickstein,  J.,  and Bengio,  S. (2016).  Density estimation usingreal nvp.arXiv preprint arXiv:1605.08803.</li>
+            <li>Deco, G. and Brauer, W. (1995). Higher order statistical decorrelation without information loss. NIPS.</li>
+          </ul>
         </section>
 
 
