@@ -38,6 +38,18 @@
         </section>
 
         <section>
+          <h3>Table of Contents</h3>
+          <ol>
+            <li>What is Generative Modeling?</li>
+            <li>A Detour into Statistical Estimation Theory</li>
+            <li>Generative Taxonomy</li>
+            <li>Examples Tractable + Explicit Density Models [Brief]</li>
+            <li>Examples Tractable + Approximated Density Models: VAE</li>
+            <li>Implicit Density Model: GAN</li>
+          </ol>
+        </section>
+
+        <section>
           <aside class="notes">
             <ul>
               <li>A generative model can be transformed into a discriminative model via bayes rule</li>
@@ -53,10 +65,27 @@
               <!-- <ul>
                    <li>Sometimes a latent variable is utilized: $Z = {z_i}_{i=0}^M \in \mathcal{R}^{N \times K}$</li>
                    </ul> -->
-                   <li>a discriminative model on the other hand learns a conditional distribution $P(Y|X)$. </li>
+              <li>a discriminative model on the other hand learns a conditional distribution $P(Y|X)$. </li>
             </ol>
           </p>
         </section>
+
+        <section>
+          <aside class="notes">
+            <ul>
+              <li></li>
+            </ul>
+          </aside>
+
+          <h3>Unsupervised Generative Modeling</h3>
+          <br>
+          <p>
+            Given $X = \{x_i\}_{i=0}^M \in \mathcal{R}^{N \times M}$ distributed
+            as $P(X)$ (unknown), an unsupervised generative model learns a
+            approximation $P_{\theta}(X)$
+          </p>
+        </section>
+
 
         <section>
           <aside class="notes">
@@ -73,10 +102,30 @@
                 inpainting</li>
               <li>GAN's for example allow the learning of multi-modal
                 distributions; minimizing the mean squared error in comparison
-                cannot learn to produce multiple correct answers
+                cannot learn to produce multipthele correct answers
                 (Goodfellow NIPS 2016)</li>
               <li>Unsupervised learning, denoising, super-resolution, compression, etc</li>
             </ul>
+        </section>
+
+        <section>
+            <aside class="notes">
+                <ul>
+                    <li></li>
+                </ul>
+            </aside>
+
+            <h3>What are we interested in?</h3>
+            <p>Given a generative model $Q$ from a class $\mathcal{Q}$ of possible models:</p>
+            <ul>
+               <li>Sampling: produce a sample from $Q$</li>
+               <li>Estimation: given IID samples $\{x_1, x_2, ... x_N\}$ from an
+               unknown true distribution $P$, find $Q \in \mathcal{Q}$ that best
+                   describes the true distribution</li>
+               <li>Point-wise likelihood evaluation: Given a sample $x$, evaluate $Q(x)$</li>
+            </ul>
+            <img height="200" src="imgs/vi_silly.png">
+            <p><small>(inference.vc)</small></p>
         </section>
 
         <section>
@@ -93,42 +142,322 @@
           <h3>When not to use a Generative Model?</h3>
           <p>
             "one should solve the [classification] problem directly and never
-            solve a more general problem as an intermediate step (such as
+            solve a more general problem as an intermediate step [such as
             modeling P(X|Y)]." (Vapnik 1998)
           </p>
+          <p>"even though the discriminative logistic regression algorithm has a
+          lower asymptotic error, the generative naive Bayes classifier may also
+          converge more quickly to its (higher) asymptotic error. Thus as the
+          number of training examples is increased, one would expect generative
+          naieve Bayes to initially do better, but for discriminative logistic
+          regression to eventually catch up to, and quite likely overtake, the
+          performance of naive Bayes" (Ng, Andrew et. al 2002)</p>
         </section>
 
-
         <section>
+          <section>
           <aside class="notes">
             <ul>
               <li></li>
             </ul>
           </aside>
 
-          <h3>Unsupervised Generative Modeling</h3>
-          <br>
-          <p>
-            Given $X = \{x_i\}_{i=0}^M \in \mathcal{R}^{N \times M}$ distributed as $P(X)$ (unknown), an unsupervised generative model learns a approximation $P_{\theta}(X)$
-          </p>
+          <h3>A Detour into Statistical Estimation Theory</h3>
+          </section>
+
+          <section>
+            <aside class="notes">
+              <ul>
+                <li>Average of the estimator will yield the true value of the unknown parameter</li>
+                <li>Since the parameter value may in general be anywhere in the
+                  interval a < $\theta$ < , unbiasedness asserts that no matter
+                  what the true value of $\theta$, our estimator will yield it on
+                  average</li>
+              </ul>
+            </aside>
+
+            <h3>Unbiased Estimator</h3>
+            <p>An estimator $\hat{\theta}$ is said to be unbiased if:
+              $$\mathbb{E}(\hat{\theta}) = \theta \ \ \ , a < \theta < b$$
+              where (a, b) denotes the range of possible values of $\theta$</p>
+            <br><br>
+            <ul>
+              <li>However, this does not mean that the estimate is a good estimate</li>
+              <li>Example on next slide</li>
+            </ul>
+          </section>
+
+          <section>
+            <aside class="notes">
+              <ul>
+                <li></li>
+              </ul>
+            </aside>
+
+            <h3>Example: DC level in noise</h3>
+            <img height="400" src="imgs/dc_white_noise.png">
+            <p>$x[n] = A + w[n]$</p>
+            <ul>
+              <li>Goal: estimate true A with an estimator $\hat{A}$</li>
+              <li>Examing two possible solutions:</li>
+              <ol>
+                <li>$\hat{A}_0 = x[0]$</li>
+                <li>$\hat{A}_1 = \frac{1}{N}\sum^{N-1}_{n=0} x[n]$</li>
+              </ol>
+            </ul>
+          </section>
+
+          <section>
+            <aside class="notes">
+              <ul>
+                <li>Take away: we want not just an unbiased estimator, but one that gives us the minimum variance</li>
+                <!-- <li>I.e. constain the bias to 0 and find a minimum variance unbiased estimator</li> -->
+                <li>While the particular specification of "optimal" here —
+                requiring unbiasedness and measuring "goodness" using the
+                variance — may not always be what is wanted for any given
+                practical situation, it is one where useful and generally
+                applicable results can be found.</li>
+                <li> In some cases biased estimators have lower MSE because they
+                have a smaller variance than does any unbiased estimator;</li>
+              </ul>
+            </aside>
+
+            <h3>Example: DC level in Noise</h3>
+            <ul>
+              <li>$\mathbb{E}(\hat{A}_0) = \mathbb{E}(\frac{1}{N}\sum^{N-1}_{n=0} x[n]) = A$</li>
+              <li>$\mathbb{E}(\hat{A}_1) = \mathbb{E}(x[0]) = A$</li>
+              <li>var($\mathbb{E}(\hat{A}_0)$) = $\frac{\sigma^2}{N}$ < var($\mathbb{E}_1$) = $\sigma^2$</li>
+            </ul>
+            <img height="500" src="imgs/min_variance.png">
+          </section>
+
+          <section>
+            <aside class="notes">
+              <ul>
+                <li></li>
+              </ul>
+            </aside>
+
+            <h3>Minimum Variance Unbiased Estimator</h3>
+            <!-- <p>
+                 \begin{align}
+                 mse(\hat{\theta}) &= \mathbb{E}[(\hat{\theta} - \theta)^2] \\
+                 &=
+                 \end{align}
+                 </p> -->
+            <p>Even if a MVU estimator exists, we may not be able to find it, we can still try the following:</p>
+            <ul>
+              <li>Determine Cramer-Rao lower bound and check if estimator satisfies it</li>
+              <li>Apply the Rao-Blackwell-Lehmann-Scheffe theorem</li>
+              <li>Try to restrict class of estimators to not only be unbiased but linear and apply BLUE</li>
+            </ul>
+          </section>
+
+          <section>
+            <aside class="notes">
+              <ul>
+                <li>We want to quantify the "sharpness" of the likelihood function</li>
+                <li>The "sharpness" is effectively measured by the fisher information matrix which is the curvative of the log likelihood function</li>
+              </ul>
+            </aside>
+
+            <h3>CRLB: Cramer-Rao Lower Bound</h3>
+            <p>$var(\hat{\theta}_i) \geq [I^{-1}(\theta)]_{ii}$</p>
+            <br>
+            <ul>
+              <li>Assumes "regularity" conditions: $$\mathbb{E}\bigg[\frac{\delta
+              \ ln\ p(X;\theta)}{\delta \ \theta} \bigg] = 0\ \ \ \forall
+              \theta$$</li>
+              <li>Assumes stationary distribution </li>
+              <ul>
+                <li>There are works that try to handle the non-linear / non stationary case
+                  case ( P. Tichavsky et. al 1998, R. J. Ober 2002)</li>
+                <!-- <li>Variance must satisfy: $var(\hat{\theta}) \geq
+                     \frac{1}{\mathbb{E} \bigg[ \frac{\delta \ ln\
+                     p(X;\theta)}{\delta \ \theta} \bigg]}$</li> -->
+              </ul>
+              <li>There exists an Asymptotic CRLB for gaussian processes that are  any WSS (Kay, Steven 1993)</li>
+            </ul>
+          </section>
+
+          <section>
+            <h3>CRLB: Continued</h3>
+            <p>$var(\hat{\theta}_i) \geq [I^{-1}(\theta)]_{ii}$</p>
+            <br>
+            <ul>
+              <li>If problem can be re-written as: $\frac{\delta \ ln\ p(X;\theta)}{\delta \ \theta} = I(\theta)(g(X)-\theta)$</li>
+              <ul>
+                <li>The MVU estimator is $\hat{\theta} = g(X)$</li>
+                <li>Minimum variance is $I^{-1}(\theta)$</li>
+              </ul>
+            </ul>
+          </section>
+
+          <section>
+            <aside class="notes">
+              <ul>
+                <li> a statistic is sufficient with respect to a statistical
+                model and its associated unknown parameter if "no other
+                statistic that can be calculated from the same sample provides
+                any additional information as to the value of the
+                parameter".</li>
+              </ul>
+            </aside>
+
+            <h3>Sufficient Statistics</h3>
+            <p>$P(X|T(X); \theta) = P(X|T(X))$</p>
+            <p>Neyman-Fisher factorization: $p(X;\theta) = g(T(X), \theta)h(X)$</p>
+            <br>
+            <ul>
+              <li>If we can factor the PDF $p(X;\theta)$ as shown above, where g
+              is a function depending only on X only through $T(X)$ and h is a
+              function depending only on X then $T(X)$ is a sufficient statistic
+              for $\theta$</li>
+              <li>Converse holds: i.e. if $T(X)$ is a sufficient statistic then the PDF can be factored as above</li>
+              <li>when using likelihood-based inference, two sets of data
+                yielding the same value for the sufficient statistic $T(X)$ will
+                always yield the same inferences about $\theta$</li>
+          </section>
+
+          <section>
+            <aside class="notes">
+              <ul>
+                <li>if you have any kind of estimator of θ,
+                  then typically the conditional expectation of this estimator given
+                  sufficient statistic T(X) is a better estimator of θ, and is
+                  never worse. </li>
+                <li>Sometimes one can very easily construct a very
+                  crude estimator, and then evaluate that conditional
+                  expected value to get an estimator that is in various senses
+                  optimal. </li>
+              </ul>
+            </aside>
+
+            <h3>Rao-Blackwell-Lehmann-Scheffe</h3>
+            <p>If $\bar{\theta}$ is an unbiased estimator of $\theta$ and $T(X)$ is a sufficient statistic for $\theta$, then $\hat{\theta} = \mathbb{E}(\bar{\theta}|T(X))$  is:</p>
+            <ol>
+              <li>a valid estimator for $\theta$ (not dependent on $\theta$)</li>
+              <li>unbiased</li>
+              <li>of lesser or equal variance than that of $\bar{\theta}$, for all of $\theta$</li>
+              <li>additionally, if the sufficient statistic is complete, then $\hat{\theta}$ is the MVU estimator</li>
+            </ol>
+          </section>
+
+          <section>
+            <h3>Classical Estimation Theory: Flowchart</h3>
+            <img height="600" src="imgs/classical_estimation.png">
+            <p><small>(Statistical Signal Processing - Estimation Theory, M. Kay)</small></p>
+          </section>
+
+          <section>
+            <aside class="notes">
+              <ul>
+                <li></li>
+              </ul>
+            </aside>
+
+            <h3>Maximum Likelihood Estimation</h3>
+            <p>
+              \begin{align}
+              \theta^* &=  \underset{\theta}{arg\ max} \prod_{i=1}^N p_{model}(x^{(i)}; \theta) \\
+              &= \underset{\theta}{arg\ max} \ log \ \prod_{i=1}^N p_{model}(x^{(i)}; \theta) \\
+              &= \underset{\theta}{arg\ max} \sum_{i=1}^N \ log \ p_{model}(x^{(i)}; \theta) \\
+              \end{align}
+            </p>
+            <ul>
+              <!-- <li>Define a model that provides an estimate of a probability
+                   distribution parameterized by parameters $\theta$</li> -->
+              <!-- <li>The likelihood is the probability the model assings to the
+                   training data: $\prod_{i=1}^N p_{model}(x^{(i)}; \theta)$</li> -->
+              <li>Principle of maximum likelihood is to choose the parameters for
+                the model that maximize the likelihood of the training data. </li>
+            </ul>
+          </section>
+
+          <section>
+            <aside class="notes">
+            </aside>
+
+            <h3>Maximum Likelihood: An alternate interpretation</h3>
+            <p>$\theta^* = \underset{\theta}{arg\ min\ } D_{KL}[p_{data}(x) || p_{model}(X; \theta)]$</p>
+            <ul>
+              <li>If we were able to do this precisely, then if $p_{data}$ lies
+                within the family of distributions $p_{model}$, the model would
+                recover $p_{data}$ exactly.</li>
+              <li>We generally do not have $p_{data}$</li>
+              <li>Only have access to $N$ samples; define $\hat{p}_{data}$ (the empirical distribution)</li>
+              <li>Generally minimize the KL between $\hat{p}_{data}$ and $p_{model}$</li>
+            </ul>
+          </section>
+
+          <section>
+            <aside class="notes">
+              <ul>
+                <li>MAP can be seen as regularized ML</li>
+                <li>MAP estimate is ML when the prior is uniform</li>
+              </ul>
+            </aside>
+
+            <h3>MAP Estimation</h3>
+            <p>
+              \begin{align}
+              \theta^* &= \underset{\theta}{arg\ max\ } p_{model}(\theta | X) \\
+              &= \underset{\theta}{arg\ max\ } \frac{p_{model}(X|\theta)p(\theta)}{p(X)} \\
+              &= \underset{\theta}{arg\ max\ } p_{model}(X|\theta)p(\theta)
+              \end{align}
+            </p>
+            <!-- <p>$$p(\theta|X) = \frac{p(X | \theta)p(\theta)$$</p> -->
+            <ul>
+              <li>$p(\theta)$ is the prior PDF summarizing our knowledge about
+                $\theta$ before any data are observed</li>
+              <li>$p(X|\theta)$ is a conditional PDF summarizing our knowledge
+                provided by the data conditioned on knowing $\theta$</li>
+              <!-- <li>The parameter we are attempting to estimate is a realization
+                   of the random variable $\theta$ [which is over a probability space
+                   $(\Omega, \mathcal{F}, P)$]</li> -->
+            </ul>
+
+          </section>
+
+          <!-- <section>
+               <aside class="notes">
+               <ul>
+               <li></li>
+               </ul>
+               </aside>
+
+               <h3>A Detour into Statistical Estimation Theory</h3>
+               </section> -->
+
+          <!-- <section>
+               <aside class="notes">
+               <ul>
+               <li></li>
+               </ul>
+               </aside>
+
+               <h3>BMSE vs. MSE</h3>
+
+               </section> -->
+
         </section>
 
         <section>
           <aside class="notes">
             <ul>
               <li>Left of the tree explicitly models density $p_{model}(x;
-              \theta)$ and you can thus explicitly minimize the likelihood</li>
+                \theta)$ and you can thus explicitly minimize the likelihood</li>
               <li>Typically the indirect means of interacting with the probability
-              distribution is the ability to draw samples from it. Some of these
-              implicit models that o er the ability to sample from the
-              distribution do so using a MarkovChain; the model de nes a way to
-              stochastically transform an existing sample in orderto obtain
-              another sample from the same distribution. Others are able to
-              generate asample in a single step, starting without any input.
+                distribution is the ability to draw samples from it. Some of these
+                implicit models that o er the ability to sample from the
+                distribution do so using a MarkovChain; the model de nes a way to
+                stochastically transform an existing sample in orderto obtain
+                another sample from the same distribution. Others are able to
+                generate asample in a single step, starting without any input.
               </li>
               <li>GSN : generative stochastic networks basically try to learn
-              the tranisition operator on a markov chain whose stationary
-              distribution estimates the data distribution</li>
+                the tranisition operator on a markov chain whose stationary
+                distribution estimates the data distribution</li>
             </ul>
           </aside>
 
@@ -138,44 +467,57 @@
         </section>
 
         <section>
-          <aside class="notes">
-            <ul>
-              <li>This is used in wavenet (2mins for 1s of audio)</li>
-              <li>Similar to RNNs</li>
-              <li>Slow because samples need to be generated one at a time</li>
-              <li>Sampling complexity is O(n)</li>
-            </ul>
-          </aside>
 
-          <h3>Tractable + Explicit Density: FVBN</h3>
-          <p>$$p_{model}(x) = \prod_{i=1}^{N} p_{model} (x_i | x_1, x_2, ..., x_{i-1})$$</p>
-          <ul>
-            <li>The FVBN (Fully Visible Belief Network) (Frey et al.,1996; Frey, 1998) utilize the chain rule to decompose a probability distribution over an n-dimensional vector x into a product of one-dimensional distributions (Goodfellow NIPS 2016)</li>
-          </ul>
+          <section>
+            <aside class="notes">
+              <ul>
+                <li>This is used in wavenet (2mins for 1s of audio)</li>
+                <li>Similar to RNNs</li>
+                <li>Slow because samples need to be generated one at a time</li>
+                <li>Sampling complexity is O(n)</li>
+              </ul>
+            </aside>
+
+            <h3>Tractable + Explicit Density: FVBN</h3>
+            <p>$$p_{model}(x) = \prod_{i=1}^{N} p_{model} (x_i | x_1, x_2, ..., x_{i-1})$$</p>
+            <ul>
+              <li>The FVBN (Fully Visible Belief Network) (Frey et al.,1996;
+              Frey, 1998) utilize the chain rule to decompose a probability
+              distribution over an n-dimensional vector x into a product of
+              one-dimensional distributions (Goodfellow NIPS 2016)</li>
+            </ul>
+          </section>
+
+          <section>
+            <h3>Tractable + Explicit Density: FVBN</h3>
+            <img src="imgs/wavenet.png">
+            <p><small>(van den Oord et. al 2016)</small></p>
+          </section>
+
         </section>
 
         <section>
           <aside class="notes">
             <ul>
-              <li> Models with nonlineargfunctions date back at least to Deco and Brauer(1995).</li>
+              <li>Models with nonlinear g functions date back at least to Deco and Brauer(1995).</li>
               <li>The  latest  member  of  this  family  is  real  NVP(Dinhet  al., 2016).</li>
               <li>Specifically, designing models with tractable learning,
-              sampling, inference and evaluation is crucial in solving this
-              task. We extend the space of such models using real-valued
-              non-volume preserving (real NVP) transformations, a set of
-              powerful invertible and learnable transformations, resulting in an
-              unsupervised learning algorithm with exact log-likelihood
-              computation, exact sampling, exact inference of latent variables,
-              and an interpretable latent space.</li>
+                sampling, inference and evaluation is crucial in solving this
+                task. We extend the space of such models using real-valued
+                non-volume preserving (real NVP) transformations, a set of
+                powerful invertible and learnable transformations, resulting in an
+                unsupervised learning algorithm with exact log-likelihood
+                computation, exact sampling, exact inference of latent variables,
+                and an interpretable latent space.</li>
               <li>The main drawback to nonlinear ICA models is that they impose
-              restrictions on the choice of the functiong. In particular, the
-              invertibility requirement means that the latent variables z must
-              have the same dimensionality as x. </li
+                restrictions on the choice of the functiong. In particular, the
+                invertibility requirement means that the latent variables z must
+                have the same dimensionality as x. </li
             </ul>
           </aside>
 
           <h3>Tractable + Explicit Density: Non-Linear ICA</h3>
-            <p>$$p_x(x) = p_z (g^{-1}(x) \bigg{|} det \left( \frac{\delta g^{-1}(x)}{\delta x} \right) \bigg{|} $$</p>
+          <p>$$p_x(x) = p_z (g^{-1}(x)) \bigg{|} det \left( \frac{\delta g^{-1}(x)}{\delta x} \right) \bigg{|} $$</p>
           <ul>
             <li>assumes vector of latent variables $z$</li>
             <li>assumes existence of continuous, differentiable, invertible function $g(z)$</li>
@@ -183,10 +525,11 @@
             <li>$g(z)$  yields a sample from the model in $x$ space</li>
           </ul>
           <p>TLDR: a simple distribution over $z$ combined with a transformation
-          $g$ that warps space in complicated ways can yield a complicated
-          distribution over $x$ (Dinh et al., 2016, Deco and Brauer 1995)</p>
+            $g$ that warps space in complicated ways can yield a complicated
+            distribution over $x$ (Dinh et al., 2016, Deco and Brauer 1995)</p>
         </section>
 
+        <section>
         <section>
           <aside class="notes">
             <ul>
@@ -201,11 +544,96 @@
           <ul>
             <li>Variational approximations such as the VAE; mean field inference</li>
             <ul>
-              <li>Minimize the variational lower bound (AKA ELBO): $\mathcal{L}(x;\theta) \leq log p_{model}(x;\theta)$</li>
-            <li>MCMC approximations: $x' \sim q(x' | x)$</li>
+              <li>Minimize the variational lower bound (AKA ELBO):
+              $\mathcal{L}(x;\theta) \leq log\ p_{model}(x;\theta)$</li>
+              <li>MCMC approximations: $x' \sim q(x' | x)$</li>
+            </ul>
           </ul>
         </section>
 
+        <section>
+          <aside class="notes">
+            <ul>
+              <li></li>
+            </ul>
+          </aside>
+
+          <h3>Understanding Variational Approximations</h3>
+          <img src="imgs/blei_vi.png">
+          <p><small>(VI Tutorial NIPS2016 Blei et. al)</small></p>
+
+        </section>
+
+        <section>
+          <h3>ELBO From Importance Sampling</h3>
+          <p>
+            \begin{align}
+            log\ p(x) &= log\ \int p(x|z)p(z)dz \\
+            &= log\ \int p(x|z)p(z)\frac{q(z)}{q(z)}dz \\
+            &= log\ \int p(x|z)q(z)\frac{p(z)}{q(z)}dz \\
+            log\ p(x) &\geq \int q(z)log\bigg(p(x|z)q(z)\frac{p(z)}{q(z)}\bigg)dz \\
+            &= \int q(z)log(p(x|z))dz - \int q(z)\frac{q(z)}{p(z)}dz \\
+            &= \mathbb{E}_{q(z)} [log\ p(x|z)] - KL[Q(z)||P(z)]
+            \end{align}
+        </section>
+
+        <section>
+          <aside class="notes">
+            <ul>
+              <li>$p_{\theta}(x^i)$ does not depend on $z$\n</li>
+              <li>bayes rule</li>
+              <li>negating both sides, rearranging and contracting part of $E_{z\sim Q}$ into a KL</li>
+              <li>multiply by constant</li>
+              <li>log properties</li>
+            </ul>
+          </aside>
+          <h3>ELBO From KL</h3>
+          <p>
+            \begin{align}
+            KL[Q(z)||P(Z|X)] &= \mathbb{E}_{z\sim Q}[log\ q(z) - log\ p(z|x)] \\
+            &= \mathbb{E}_{z\sim Q}[log\ q(z) - log\ p(x|z) \\
+            &\ \ \ \ \ - log\ p(z)] + log\ p(x) \\
+            log\ p(x) &= \mathbb{E}_{z\sim Q} [log\ p(x|z)] \\
+            &\ \ \ \ \ - KL[Q(z|x)||P(z)] \\
+            &\ \ \ \ \ + KL[Q(z|x) || P(z|x)]\\
+            \end{align}
+          </p>
+        </section>
+
+        <section>
+          <h3>ELBO from expectation over marginal</h3>
+          <img src="imgs/vae_math.png">
+        </section>
+
+        <section>
+          <h3>Variational Lower Bound</h3>
+          <aside class="notes">
+            <ul>
+              <li>$p_{\theta}(x^i)$ does not depend on $z$\n</li>
+              <li>bayes rule</li>
+              <li>multiply by constant</li>
+              <li>log properties</li>
+            </ul>
+          </aside>
+          <!-- <img src="imgs/vae_math.png"> -->
+          $$
+          \begin{align}
+          \begin{split}
+          &log\ p(x) - KL(Q_{\theta^e}(Z|X)\ ||\ P(Z|X)) \\
+          &= E_{x \sim D}[E_{z \sim Q} [log\ p_{\theta^d}(x | z)] \\
+          &\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ -KL(Q_{\theta^e}(Z|X)\ ||\ P(Z))]
+          \end{split}
+          \end{align}
+          $$
+          <ul><br>
+            <li>$log\ p_{\theta^d}(x | z)$ : amount of information required to reconstruct X from Z under an ideal encoding.</li>
+            <li>$log\ p(x)$ : number of bits required to construct X under our model using an ideal encoding</li>
+            <li>$KL(Q_{\theta^e}(Z|X)\ ||\ P(Z))$ : the 'extra'
+              information we get about $X$ when $Z$ comes from $Q_{\theta^e}(Z|X)$ instead of
+              $P(Z)$</li>
+            <li>$KL(Q_{\theta^e}(Z|X)\ ||\ P(Z|X))$ : Pentaly for our estimate $Q_{\theta^e}$ being sub-optimal</li>
+          </ul>
+        </section>
 
         <section>
           <aside class="notes">
@@ -226,7 +654,7 @@
             </ul>
           </aside>
 
-          <h3>Exercise: Bayesian Logistic Regression</h3>
+          <h3>Exercise: VI for Bayesian Logistic Regression</h3>
           <ul>
             <li>For simplicity let's work with one data point: $(y, x)$</li>
             <li>Bayesian version puts a prior on the regression coefficient z</li>
@@ -238,17 +666,43 @@
               <li>Recall: $Bern(\phi ; \mu) = \mu^{\phi} (1 - \mu)^{1 - \phi}$</li>
             </ul>
             <li>Solve the ELBO: </li>
-p            $\begin{align}
+            $\begin{align}
             \mathcal{L}(\mu, \sigma^2) &= \mathbb{E}_{q \sim \mathcal{N}(\mu, \sigma^2)} [log\ p(z) \\
-            &- log\ q(z) + log\ p(y|x,z)]
+            &\ \ \ \ - log\ q(z) + log\ p(y|x,z)]
             \end{align}$
           </ul>
         </section>
 
         <section>
           <aside class="notes">
+            <ol>
+              <li>properties for gaussian distrs: expand first term to get the
+              expectation of the square and the second term is the entropy (up
+                to a constant C)</li>
+              <li>Expand out likelihood of data (bernoiulli likelihood)</li>
+              <li>Can't analytically take that last expectation</li>
+              <li>expectation hides the objectives dependence on the variational parameters</li>
+            </ol>
+          </aside>
+          <h3>Exercise: Bayesian Logistic Regression Continued</h3>
+          <p>
+            \begin{align}
+            \mathcal{L}(\mu, \sigma^2) &= \mathbb{E}_{q \sim \mathcal{N}(\mu, \sigma^2)} [log\ p(z) \\
+            &\ \ \ \ - log\ q(z) + log\ p(y|x,z)] \\
+            &= -0.5 (\mu^2 + \sigma^2) + 0.5\ log\ \sigma^2 \\
+            &\ \ \ \ + \mathbb{E}_q[log\ p(y|x,z)] + C \\
+            &= -0.5 (\mu^2 + \sigma^2) + 0.5\ log\ \sigma^2 \\
+            &\ \ \ \ + \mathbb{E}_q[yxz - log(1\ +\ exp(xz))] + C \\
+            &= -0.5 (\mu^2 + \sigma^2) + 0.5\ log\ \sigma^2 \\
+            &\ \ \ \ + yx\mu - \mathbb{E}_q[log(1\ +\ exp(xz))] + C \\
+            \end{align}
+          </p>
+        </section>
+
+        <section>
+          <aside class="notes">
             <ul>
-              <li></li>
+              <li>Use stochastic optimization</li>
             </ul>
           </aside>
 
@@ -258,18 +712,200 @@ p            $\begin{align}
         </section>
 
         <section>
+          <aside class="notes">
+            <ol>
+              <!-- <li>term inside elbo is a function of latent vars and variational params</li> -->
+              <li>Write integral form</li>
+              <li>Make assumption that we can swap integration and differentiation (true for a general case)</li>
+              <li>product rule</li>
+              <li>re-write the gradient wrt using the log-derivative trick
+              (introduce the density into both terms so that we can re-write the
+                object as an expectation)</li>
+              <li>Variance of the gradient can be a problem: solution is to use
+              control variates whereby we introduce our estimator with a new
+              estimator with the same mean.</li>
+            </ol>
+          </aside>
+
+          <h3>Gradients of expectations</h3>
+          <!-- <img src="imgs/gradients_of_expectations.png">
+               <ul><li>$\nu$ = $\theta$</li></ul> -->
+          <p>Define: $$g(z, \theta) = log\ p(x,z)-log\ q(z;\theta) $$</p><br>
+          <p>
+            \begin{align}
+            \nabla_{\theta} \mathcal{L} &= \nabla_{\theta} \int q(z;\theta)g(z,\theta)\ dz \\
+            &= \int \nabla_{\theta} q(z;\theta)g(z,\theta) + q(z;\theta)\nabla_{\theta}g(z,\theta)\ dz \\
+            &= \int \bigg\{ q(z;\theta) \nabla_{\theta} log\ q(z;\theta)g(z,\theta) \\
+            &\ \ \ \ \ \ \ \ \ \ \ + q(z;\theta)\nabla_{\theta}g(z,\theta)\ dz \bigg\} \\
+            &= \mathbb{E}_{q(z;\theta)}[\nabla_{\theta} log\ q(z;\theta)g(z, \theta) + \nabla_{\theta} g(z, \theta)]
+            \end{align}
+          </p>
+
+          <br>
+          <ul>
+            <li>(Using: $\nabla_{\theta} log\ q = \frac{\nabla_{\theta}q}{q}$)</li>
+          </ul>
+        </section>
+
+        <section>
+          <aside class="notes">
+            <ul>
+              <li>rewrite it in terms of noise source that is parameter free</li>
+              <li>epsilon comes from DISTRIBUTION s with no params (not dependent on theta)</li>
+              <li>we can transform that noise source with a func that is
+              dependent on the parameters to get a RV that has the same distr as
+                the original</li>
+              <li> we also necissisate that the model and the variational approx
+                are differentiable w.r.t. to the latent variables</li>
+              <li>Has better behaved variance</li>
+            </ul>
+          </aside>
+
+          <h3>Pathwise Estimator</h3>
+          <ul>
+            <li>Try to decouple noise: $z = t(\epsilon, \theta)$ for $\epsilon
+              \sim s(\epsilon)$ implies $z \sim q(z; \theta)$</li>
+            <li>eg: $\epsilon \sim \mathcal{N}(0, 1)$, $z = \epsilon \odot \sigma + \mu$</li>
+            <ul>
+              <li>$z \sim \mathcal{N}(\mu, \sigma^2)$</li>
+            </ul>
+            <li>Necissisate that $log\ p(x, z)$ and $log\ q(z)$ are differentiable w.r.t. $z$</li>
+            <li>Results in:</li>
+            <p>
+              \begin{align}
+              \nabla \mathcal{L}(\theta) &= \mathbb{E}_{s(\epsilon)}[\nabla_z[log\ p(x, z) \\
+              &\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \  \ - log\ q(z; \theta)] \nabla_{\theta}t(\epsilon, \theta)]
+              \end{align}
+            </p>
+          </ul>
+        </section>
+
+        <section>
+          <h3>Variational Autoencoder</h3>
+          <img src="imgs/vae.png">
+          <p><small>(Doersch, Carl 2016)</small></p>
+        </section>
+
+        <section>
+          <h3>Performance of VI</h3>
+          <img src="imgs/performance_vi.png">
+        </section>
+
+        <section>
+          <aside class="notes">
+            <ul>
+              <li>Grey is true posterior</li>
+              <li>Same posterior at different zooms</li>
+              <li>first has strong correlations between distributions</li>
+              <li>second: Can be spherical but not quite gaussian</li>
+              <li>third: multimodal</li>
+              <li>fourth: heavy tail</li>
+              <li>cant model as a fully factorized gaussian</li>
+            </ul>
+          </aside>
+          <h3>Problem with VI: Choice of posteriors</h3>
+          <img height="600" src="imgs/posterior_problems.png">
+        </section>
+
+        </section>
+
+        <section>
+        <section>
+          <h3>Implicit Density Model: GAN</h3>
+          <img src="imgs/gan.png">
+        </section>
+
+        <section>
+          <aside class="notes">
+            <ul>
+              <li>Goodfellow showed that this variant of the GAN showed that the
+              gan minimizes the JSD between the data and the model
+                distribution</li>
+              <li>V is the value function specifying the distriminators payoff</li>
+              <li>Zero-sum games are also called minimax games because their solution involves
+                minimization in an outer loop and maximization in an inner loop</li>
+            </ul>
+          </aside>
+          <h3>GAN: Loss</h3>
+          <p>\begin{align}
+            J^{(D)}(\theta^{(D)}, \theta^{(G)}) = &-0.5 \mathbb{E}_{x \sim p_{data}}[log\ D(x)] \\
+            &- 0.5 \mathbb{E}_z[log(1 - D(G(z)))]
+            \end{align}</p>
+          <p>
+            \begin{align}
+            J^{(G)} &= -0.5 \mathbb{E}_z [log\ D(G(z))]
+            \end{align}
+          </p>
+          <br>
+          <ul>
+            <li>standard sigmoid cross-entropy</li>
+            <li>Tries to solve a zero-sum game: $J^{(G)} = -J^{(D)}$</li>
+            <li>$V(\theta^{(D)}, \theta^{(G)}) = -J^{(D)}(\theta^{(D)}, \theta^{(G)})$</li>
+            <li>$\theta^{(G)*} = \underset{\theta^{(G)}}{arg\ min}
+            \underset{\theta^{(D)}}{\ max} V(\theta^{(D)}, \theta^{(G)})$</li>
+          </ul>
+        </section>
+
+        <section>
+          <h3>Mode Collapse Problem</h3>
+          <img src="imgs/mode_collapse.png">
+        </section>
+
+        <section>
+          <h3>Useful loss: Wasserstein GAN</h3>
+          <p>Change 'counterfiet detector' to 'critic'</p>
+          <img src="imgs/wasserstein.png">
+        </section>
+
+        <section>
+          <h3>Plug and Play GAN Results</h3>
+          <img src="imgs/plug_and_play_gan.png">
+        </section>
+
+        </section>
+
+        <section>
+          <h3>Conclusion</h3>
+          <ul>
+            <li>Estimating posterior distributions are hard</li>
+            <li>Latent variables in VI models should be complex enough to represent the space</li>
+            <li>Transforming discriminative losses into generative ones pose great results</li>
+            <li>Implicit density modeling with posterior estimates are the future (eg: ALI, BiGAN)</li>
+          </ul>
+        </section>
+
+        <section>
           <h3>References</h3>
           <ul>
             <li>Frey, B. J. (1998).Graphical  models  for  machine  learning  and  digital  communication.  MIT Press.</li>
             <li>Frey, B. J., Hinton, G. E., and Dayan, P. (1996). Does the wake-sleep algorithm learn good density estimators?  In D. Touretzky, M. Mozer, and M. Hasselmo,editors,Advances  in  Neural  Information  Processing  Systems  8  (NIPS'95),pages 661{670. MIT Press, Cambridge, MA.</li>
             <li>Dinh,  L.,  Sohl-Dickstein,  J.,  and Bengio,  S. (2016).  Density estimation usingreal nvp.arXiv preprint arXiv:1605.08803.</li>
             <li>Deco, G. and Brauer, W. (1995). Higher order statistical decorrelation without information loss. NIPS.</li>
+            <li>Nguyen, Anh, et al. "Plug & play generative networks: Conditional iterative generation of images in latent space." arXiv preprint arXiv:1612.00005 (2016).</li>
           </ul>
         </section>
 
+        <section>
+          <h3>References</h3>
+          <ul>
+            <li>P. Tichavsky, C. H. Muravchik, and A. Nehorai, “Posterior Cramer-Rao
+              bounds for discrete-time nonlinear filtering,” IEEE Trans. Signal
+              Process., vol. 46, no. 5, pp. 1386–1396, May 1998.</li>
+            <li>R. J. Ober, “The Fisher information matrix for linear systems,” Syst.
+              Control Lett., vol. 47, pp. 221–226, 2002.</li>
+            <li>Kay, Steven M. "Fundamentals of statistical signal processing, volume I: estimation theory." (1993).</li>
+            <li>van den Oord, Aäron, et al. "Wavenet: A generative model for raw audio." CoRR abs/1609.03499 (2016).</li>
+            <li>Ng, Andrew Y., and Michael I. Jordan. "On discriminative vs. generative classifiers: A comparison of logistic regression and naive bayes." Advances in neural information processing systems 2 (2002): 841-848.</li>
+          </ul>
+        </section>
 
-
-
+        <section>
+          <h3>References</h3>
+          <ul>
+            <li>Doersch, Carl. "Tutorial on variational autoencoders." arXiv preprint arXiv:1606.05908 (2016).</li>
+            <li>Goodfellow, Ian. "NIPS 2016 Tutorial: Generative Adversarial Networks." arXiv preprint arXiv:1701.00160 (2016).</li>
+          </ul>
+        </section>
 
 
       </div>
